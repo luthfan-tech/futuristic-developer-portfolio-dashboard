@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dev Portfolio — Luxe Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            neon: {
+              cyan:   '#00f5ff',
+              purple: '#bf00ff',
+              green:  '#39ff14',
+              pink:   '#ff006e',
+              yellow: '#ffe600',
+            },
+            dark: {
+              900: '#050510',
+              800: '#0a0a1a',
+              700: '#0f0f2a',
+              600: '#14143a',
+              500: '#1a1a4a',
+            }
+          },
+          animation: {
+            'pulse-slow':   'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+            'glow':         'glow 2s ease-in-out infinite alternate',
+            'scan':         'scan 4s linear infinite',
+            'float':        'float 6s ease-in-out infinite',
+            'matrix':       'matrix 20s linear infinite',
+            'bar-fill':     'barFill 2s ease-out forwards',
+          },
+          keyframes: {
+            glow: {
+              '0%':   { textShadow: '0 0 10px #00f5ff, 0 0 20px #00f5ff' },
+              '100%': { textShadow: '0 0 20px #00f5ff, 0 0 40px #00f5ff, 0 0 60px #00f5ff' },
+            },
+            scan: {
+              '0%':   { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100vh)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%':      { transform: 'translateY(-12px)' },
+            },
+            barFill: {
+              '0%':   { width: '0%' },
+              '100%': { width: 'var(--target-width)' },
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #050510;
+      color: #e0e0ff;
+      overflow-x: hidden;
+    }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+    /* Neon border glow utilities */
+    .border-neon-cyan  { border-color: #00f5ff; box-shadow: 0 0 8px #00f5ff44, inset 0 0 8px #00f5ff11; }
+    .border-neon-purple{ border-color: #bf00ff; box-shadow: 0 0 8px #bf00ff44, inset 0 0 8px #bf00ff11; }
+    .border-neon-green { border-color: #39ff14; box-shadow: 0 0 8px #39ff1444, inset 0 0 8px #39ff1411; }
+    .border-neon-pink  { border-color: #ff006e; box-shadow: 0 0 8px #ff006e44, inset 0 0 8px #ff006e11; }
+
+    .text-neon-cyan   { color: #00f5ff; }
+    .text-neon-purple { color: #bf00ff; }
+    .text-neon-green  { color: #39ff14; }
+    .text-neon-pink   { color: #ff006e; }
+    .text-neon-yellow { color: #ffe600; }
+
+    .glow-cyan   { text-shadow: 0 0 12px #00f5ff, 0 0 24px #00f5ff88; }
+    .glow-purple { text-shadow: 0 0 12px #bf00ff, 0 0 24px #bf00ff88; }
+    .glow-green  { text-shadow: 0 0 12px #39ff14, 0 0 24px #39ff1488; }
+    .glow-pink   { text-shadow: 0 0 12px #ff006e, 0 0 24px #ff006e88; }
+
+    .card {
+      background: linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 100%);
+      border: 1px solid;
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, currentColor, transparent);
+      opacity: 0.6;
+    }
+
+    /* Contribution graph cells */
+    .contrib-cell {
+      width: 12px; height: 12px;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .contrib-cell:hover { transform: scale(1.4); z-index: 10; position: relative; }
+
+    /* Skill bar */
+    .skill-bar-track {
+      background: #1a1a4a;
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Scanline overlay */
+    .scanline {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00f5ff33, transparent);
+      pointer-events: none;
+      z-index: 9999;
+      animation: scan 6s linear infinite;
+    }
+
+    /* Grid background */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Blinking cursor */
+    .cursor::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+      color: #00f5ff;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* Repo card hover */
+    .repo-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .repo-card:hover {
+      transform: translateY(-6px) scale(1.02);
+    }
+
+    /* Status dot pulse */
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #39ff14;
+      box-shadow: 0 0 6px #39ff14, 0 0 12px #39ff14;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* Metric counter */
+    .metric-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* Activity feed item */
+    .activity-item {
+      border-left: 2px solid;
+      padding-left: 0.75rem;
+      margin-bottom: 0.75rem;
+      animation: fadeInLeft 0.5s ease forwards;
+    }
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a1a; }
+    ::-webkit-scrollbar-thumb { background: #00f5ff44; border-radius: 2px; }
+  </style>
+</head>
+<body class="dark grid-bg min-h-screen">
+
+  <!-- Scanline effect -->
+  <div class="scanline"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ HEADER -->
+  <header class="sticky top-0 z-50 border-b border-neon-cyan bg-dark-900 bg-opacity-90 backdrop-blur-md px-6 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="status-dot"></div>
+        <span class="font-orbitron text-sm text-neon-cyan glow-cyan tracking-widest">LUXE.DEV</span>
+        <span class="text-xs text-gray-500">// portfolio_v2.0</span>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-xs text-gray-400">
+        <a href="#metrics"  class="hover:text-neon-cyan transition-colors">METRICS</a>
+        <a href="#repos"    class="hover:text-neon-cyan transition-colors">REPOS</a>
+        <a href="#activity" class="hover:text-neon-cyan transition-colors">ACTIVITY</a>
+        <a href="#skills"   class="hover:text-neon-cyan transition-colors">SKILLS</a>
+        <a href="#graph"    class="hover:text-neon-cyan transition-colors">GRAPH</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-neon-green glow-green" id="live-clock"></span>
+        <span class="text-xs text-gray-600">UTC</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- ═══════════════════════════════════════════════════════ HERO -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Bio card -->
+      <div class="card border-neon-cyan lg:col-span-2" style="color:#00f5ff">
+        <div class="flex items-start gap-5">
+          <!-- Avatar -->
+          <div class="relative flex-shrink-0">
+            <div class="w-20 h-20 rounded-full border-2 border-neon-cyan flex items-center justify-center text-3xl"
+                 style="background:linear-gradient(135deg,#0a0a2a,#1a0a3a); box-shadow:0 0 20px #00f5ff44">
+              🧑‍💻
+            </div>
+            <div class="absolute -bottom-1 -right-1 status-dot"></div>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <h1 class="font-orbitron text-2xl font-black text-neon-cyan glow-cyan mb-1">ALEX.LUXE</h1>
+            <p class="text-xs text-neon-purple glow-purple mb-3">Full-Stack Engineer · Open Source Contributor · AI Enthusiast</p>
+            <!-- Terminal bio -->
+            <div class="bg-dark-900 rounded-lg p-3 border border-gray-800 text-xs leading-relaxed">
+              <span class="text-neon-green">$</span>
+              <span class="text-gray-400"> whoami</span><br/>
+              <span class="text-gray-300">→ Building scalable systems at the intersection of</span><br/>
+              <span class="text-neon-cyan">  TypeScript</span><span class="text-gray-300">,</span>
+              <span class="text-neon-purple"> AI/ML</span><span class="text-gray-300">, and</span>
+              <span class="text-neon-green"> open-source</span><span class="text-gray-300">.</span><br/>
+              <span class="text-gray-300">→ 5+ yrs crafting elegant APIs &amp; reactive UIs.</span><br/>
+              <span class="text-neon-green">$</span>
+              <span class="text-gray-400"> status</span><br/>
+              <span class="text-neon-yellow">  ⚡ Available for freelance &amp; collab</span>
+              <span class="cursor"></span>
+            </div>
+          </div>
+        </div>
+        <!-- Tags -->
+        <div class="flex flex-wrap gap-2 mt-4">
+          <span class="px-2 py-1 rounded text-xs border border-neon-cyan text-neon-cyan bg-neon-cyan bg-opacity-5">TypeScript</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-purple text-neon-purple bg-neon-purple bg-opacity-5">Next.js</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-green text-neon-green bg-neon-green bg-opacity-5">Node.js</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-pink text-neon-pink bg-neon-pink bg-opacity-5">React</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-yellow text-neon-yellow bg-neon-yellow bg-opacity-5">PostgreSQL</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-cyan text-neon-cyan bg-neon-cyan bg-opacity-5">Docker</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-purple text-neon-purple bg-neon-purple bg-opacity-5">GraphQL</span>
+          <span class="px-2 py-1 rounded text-xs border border-neon-green text-neon-green bg-neon-green bg-opacity-5">AI/LLM</span>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="flex flex-col gap-4">
+        <div class="card border-neon-green flex-1" style="color:#39ff14">
+          <p class="text-xs text-gray-500 mb-1">TOTAL COMMITS (2024)</p>
+          <p class="metric-value text-neon-green glow-green" id="commit-count">0</p>
+          <p class="text-xs text-gray-600 mt-1">↑ 12% vs last year</p>
+        </div>
+        <div class="card border-neon-purple flex-1" style="color:#bf00ff">
+          <p class="text-xs text-gray-500 mb-1">REPOS MAINTAINED</p>
+          <p class="metric-value text-neon-purple glow-purple" id="repo-count">0</p>
+          <p class="text-xs text-gray-600 mt-1">↑ 3 new this month</p>
+        </div>
+        <div class="card border-neon-pink flex-1" style="color:#ff006e">
+          <p class="text-xs text-gray-500 mb-1">STARS EARNED</p>
+          <p class="metric-value text-neon-pink glow-pink" id="star-count">0</p>
+          <p class="text-xs text-gray-600 mt-1">↑ 48 this week</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ METRICS ROW -->
+    <section id="metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="card border-neon-cyan text-center" style="color:#00f5ff">
+        <div class="text-2xl mb-1">🔥</div>
+        <p class="metric-value text-neon-cyan text-xl" id="streak">0</p>
+        <p class="text-xs text-gray-500 mt-1">DAY STREAK</p>
+        <div class="mt-2 h-1 rounded-full bg-dark-600 overflow-hidden">
+          <div class="h-full bg-neon-cyan rounded-full" style="width:73%; box-shadow:0 0 6px #00f5ff"></div>
+        </div>
+      </div>
+      <div class="card border-neon-purple text-center" style="color:#bf00ff">
+        <div class="text-2xl mb-1">🧩</div>
+        <p class="metric-value text-neon-purple text-xl" id="prs">0</p>
+        <p class="text-xs text-gray-500 mt-1">PULL REQUESTS</p>
+        <div class="mt-2 h-1 rounded-full bg-dark-600 overflow-hidden">
+          <div class="h-full bg-neon-purple rounded-full" style="width:60%; box-shadow:0 0 6px #bf00ff"></div>
+        </div>
+      </div>
+      <div class="card border-neon-green text-center" style="color:#39ff14">
+        <div class="text-2xl mb-1">🐛</div>
+        <p class="metric-value text-neon-green text-xl" id="issues">0</p>
+        <p class="text-xs text-gray-500 mt-1">ISSUES CLOSED</p>
+        <div class="mt-2 h-1 rounded-full bg-dark-600 overflow-hidden">
+          <div class="h-full bg-neon-green rounded-full" style="width:88%; box-shadow:0 0 6px #39ff14"></div>
+        </div>
+      </div>
+      <div class="card border-neon-pink text-center" style="color:#ff006e">
+        <div class="text-2xl mb-1">👥</div>
+        <p class="metric-value text-neon-pink text-xl" id="followers">0</p>
+        <p class="text-xs text-gray-500 mt-1">FOLLOWERS</p>
+        <div class="mt-2 h-1 rounded-full bg-dark-600 overflow-hidden">
+          <div class="h-full bg-neon-pink rounded-full" style="width:45%; box-shadow:0 0 6px #ff006e"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ CONTRIBUTION GRAPH -->
+    <section id="graph" class="card border-neon-cyan" style="color:#00f5ff">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-orbitron text-sm text-neon-cyan glow-cyan tracking-widest">// CONTRIBUTION GRAPH</h2>
+        <div class="flex items-center gap-3 text-xs text-gray-500">
+          <span>Less</span>
+          <div class="flex gap-1">
+            <div class="contrib-cell" style="background:#1a1a4a"></div>
+            <div class="contrib-cell" style="background:#003d4d"></div>
+            <div class="contrib-cell" style="background:#006680"></div>
+            <div class="contrib-cell" style="background:#00a8cc"></div>
+            <div class="contrib-cell" style="background:#00f5ff; box-shadow:0 0 4px #00f5ff"></div>
+          </div>
+          <span>More</span>
+        </div>
+      </div>
+      <!-- Month labels -->
+      <div class="flex gap-1 mb-1 text-xs text-gray-600 pl-8">
+        <span style="width:52px">Jan</span><span style="width:52px">Feb</span>
+        <span style="width:52px">Mar</span><span style="width:52px">Apr</span>
+        <span style="width:52px">May</span><span style="width:52px">Jun</span>
+        <span style="width:52px">Jul</span><span style="width:52px">Aug</span>
+        <span style="width:52px">Sep</span><span style="width:52px">Oct</span>
+        <span style="width:52px">Nov</span><span style="width:52px">Dec</span>
+      </div>
+      <div class="flex gap-2">
+        <!-- Day labels -->
+        <div class="flex flex-col gap-1 text-xs text-gray-600 pt-1">
+          <span style="height:12px">M</span>
+          <span style="height:12px"></span>
+          <span style="height:12px">W</span>
+          <span style="height:12px"></span>
+          <span style="height:12px">F</span>
+          <span style="height:12px"></span>
+          <span style="height:12px">S</span>
+        </div>
+        <!-- Graph grid -->
+        <div id="contrib-graph" class="flex gap-1 flex-wrap" style="display:flex; flex-direction:column; flex-wrap:wrap; height:98px; gap:3px; overflow-x:auto"></div>
+      </div>
+      <p class="text-xs text-gray-600 mt-3" id="graph-summary">Loading contribution data...</p>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ REPOS + ACTIVITY -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Repository showcase -->
+      <div id="repos" class="lg:col-span-2 space-y-4">
+        <h2 class="font-orbitron text-sm text-neon-purple glow-purple tracking-widest">// PINNED REPOSITORIES</h2>
+        <div id="repo-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Activity feed -->
+      <div id="activity">
+        <h2 class="font-orbitron text-sm text-neon-green glow-green tracking-widest mb-4">// LIVE ACTIVITY</h2>
+        <div class="card border-neon-green" style="color:#39ff14; max-height:420px; overflow-y:auto">
+          <div id="activity-feed" class="space-y-0"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ SKILLS -->
+    <section id="skills" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="card border-neon-purple" style="color:#bf00ff">
+        <h2 class="font-orbitron text-sm text-neon-purple glow-purple tracking-widest mb-4">// TECH STACK</h2>
+        <div id="skills-list" class="space-y-3"></div>
+      </div>
+      <div class="card border-neon-pink" style="color:#ff006e">
+        <h2 class="font-orbitron text-sm text-neon-pink glow-pink tracking-widest mb-4">// LANGUAGE BREAKDOWN</h2>
+        <div id="lang-chart" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ FOOTER -->
+    <footer class="text-center text-xs text-gray-700 py-6 border-t border-gray-900">
+      <p class="font-orbitron text-neon-cyan glow-cyan text-xs mb-1">LUXE.DEV // PORTFOLIO v2.0</p>
+      <p>Built with React · Tailwind CSS · Neon Dreams · <span id="footer-year"></span></p>
+    </footer>
+
+  </main>
+
+  <script>
+  // ─── DATA ────────────────────────────────────────────────────────────────────
+  const REPOS = [
+    {
+      name: 'codebase-memory-mcp',
+      desc: 'MCP server for semantic codebase memory using SQLite & vector search.',
+      lang: 'TypeScript', langColor: '#3178c6',
+      stars: 312, forks: 47, issues: 8,
+      color: '#00f5ff', borderClass: 'border-neon-cyan',
+      topics: ['mcp', 'ai', 'sqlite'],
+      updated: '2h ago',
+    },
+    {
+      name: 'luxe-ui-kit',
+      desc: 'Futuristic neon component library for React with Tailwind CSS.',
+      lang: 'TypeScript', langColor: '#3178c6',
+      stars: 891, forks: 134, issues: 22,
+      color: '#bf00ff', borderClass: 'border-neon-purple',
+      topics: ['react', 'tailwind', 'ui'],
+      updated: '1d ago',
+    },
+    {
+      name: 'graph-tracker-api',
+      desc: 'Real-time GitHub contribution graph tracker with WebSocket streaming.',
+      lang: 'Node.js', langColor: '#68a063',
+      stars: 204, forks: 31, issues: 5,
+      color: '#39ff14', borderClass: 'border-neon-green',
+      topics: ['api', 'websocket', 'github'],
+      updated: '3d ago',
+    },
+    {
+      name: 'ai-code-reviewer',
+      desc: 'LLM-powered automated code review bot for GitLab & GitHub pipelines.',
+      lang: 'Python', langColor: '#3572A5',
+      stars: 1247, forks: 203, issues: 41,
+      color: '#ff006e', borderClass: 'border-neon-pink',
+      topics: ['ai', 'llm', 'devops'],
+      updated: '5h ago',
+    },
+  ];
+
+  const SKILLS = [
+    { name: 'TypeScript / JavaScript', pct: 95, color: '#00f5ff' },
+    { name: 'React / Next.js',         pct: 90, color: '#bf00ff' },
+    { name: 'Node.js / Bun',           pct: 88, color: '#39ff14' },
+    { name: 'PostgreSQL / SQLite',     pct: 80, color: '#ff006e' },
+    { name: 'Docker / K8s',            pct: 72, color: '#ffe600' },
+    { name: 'AI / LLM Integration',    pct: 85, color: '#00f5ff' },
+  ];
+
+  const LANGS = [
+    { name: 'TypeScript', pct: 58, color: '#3178c6' },
+    { name: 'JavaScript', pct: 18, color: '#f7df1e' },
+    { name: 'Python',     pct: 12, color: '#3572A5' },
+    { name: 'Shell',      pct:  7, color: '#89e051' },
+    { name: 'SQL',        pct:  5, color: '#e38c00' },
+  ];
+
+  const ACTIVITY_EVENTS = [
+    { icon: '⬆️', text: 'Pushed 3 commits to <b>codebase-memory-mcp</b>', time: '2m ago',  color: '#00f5ff' },
+    { icon: '⭐', text: '<b>ai-code-reviewer</b> received a new star',      time: '8m ago',  color: '#ffe600' },
+    { icon: '🔀', text: 'Merged PR #47 into <b>luxe-ui-kit</b>',           time: '23m ago', color: '#bf00ff' },
+    { icon: '🐛', text: 'Closed issue #22 in <b>graph-tracker-api</b>',    time: '1h ago',  color: '#39ff14' },
+    { icon: '🍴', text: '<b>graph-tracker-api</b> was forked by @devuser', time: '2h ago',  color: '#ff006e' },
+    { icon: '💬', text: 'New comment on PR #51 in <b>luxe-ui-kit</b>',     time: '3h ago',  color: '#bf00ff' },
+    { icon: '🚀', text: 'Released v1.4.0 of <b>codebase-memory-mcp</b>',   time: '5h ago',  color: '#00f5ff' },
+    { icon: '⬆️', text: 'Pushed 7 commits to <b>ai-code-reviewer</b>',    time: '6h ago',  color: '#00f5ff' },
+    { icon: '⭐', text: '<b>luxe-ui-kit</b> hit 800 stars!',               time: '8h ago',  color: '#ffe600' },
+    { icon: '🔀', text: 'Opened PR #52 in <b>ai-code-reviewer</b>',        time: '10h ago', color: '#bf00ff' },
+  ];
+
+  // ─── CLOCK ───────────────────────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('live-clock').textContent =
+      now.toUTCString().split(' ')[4];
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+  // ─── COUNTER ANIMATION ───────────────────────────────────────────────────────
+  function animateCounter(el, target, duration = 1800) {
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      el.textContent = Math.floor(start).toLocaleString();
+      if (start >= target) clearInterval(timer);
+    }, 16);
+  }
+
+  window.addEventListener('load', () => {
+    animateCounter(document.getElementById('commit-count'), 2847);
+    animateCounter(document.getElementById('repo-count'),   34);
+    animateCounter(document.getElementById('star-count'),   2654);
+    animateCounter(document.getElementById('streak'),       73);
+    animateCounter(document.getElementById('prs'),          189);
+    animateCounter(document.getElementById('issues'),       412);
+    animateCounter(document.getElementById('followers'),    1203);
+  });
+
+  // ─── CONTRIBUTION GRAPH ──────────────────────────────────────────────────────
+  function buildContribGraph() {
+    const container = document.getElementById('contrib-graph');
+    const totalWeeks = 52;
+    const totalDays  = totalWeeks * 7;
+    let totalContribs = 0;
+
+    const levels = [
+      { bg: '#1a1a4a', shadow: 'none' },
+      { bg: '#003d4d', shadow: 'none' },
+      { bg: '#006680', shadow: '0 0 3px #006680' },
+      { bg: '#00a8cc', shadow: '0 0 5px #00a8cc' },
+      { bg: '#00f5ff', shadow: '0 0 8px #00f5ff, 0 0 16px #00f5ff44' },
+    ];
+
+    for (let i = 0; i < totalDays; i++) {
+      const rand = Math.random();
+      let level;
+      if      (rand < 0.35) level = 0;
+      else if (rand < 0.55) level = 1;
+      else if (rand < 0.72) level = 2;
+      else if (rand < 0.87) level = 3;
+      else                  level = 4;
+
+      const contribs = level === 0 ? 0 : Math.floor(Math.random() * 12 * level) + 1;
+      totalContribs += contribs;
+
+      const cell = document.createElement('div');
+      cell.className = 'contrib-cell';
+      cell.style.background  = levels[level].bg;
+      cell.style.boxShadow   = levels[level].shadow;
+      cell.title = `${contribs} contribution${contribs !== 1 ? 's' : ''}`;
+      container.appendChild(cell);
+    }
+
+    document.getElementById('graph-summary').textContent =
+      `${totalContribs.toLocaleString()} contributions in the last year · Longest streak: 73 days`;
+  }
+  buildContribGraph();
+
+  // ─── REPO CARDS ──────────────────────────────────────────────────────────────
+  function buildRepos() {
+    const grid = document.getElementById('repo-grid');
+    REPOS.forEach((repo, i) => {
+      const card = document.createElement('div');
+      card.className = `card repo-card ${repo.borderClass}`;
+      card.style.color = repo.color;
+      card.style.animationDelay = `${i * 0.1}s`;
+      card.innerHTML = `
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <p class="font-orbitron text-xs font-bold" style="color:${repo.color}; text-shadow:0 0 8px ${repo.color}88">${repo.name}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Updated ${repo.updated}</p>
+          </div>
+          <span class="text-lg">📦</span>
+        </div>
+        <p class="text-xs text-gray-400 mb-3 leading-relaxed">${repo.desc}</p>
+        <div class="flex flex-wrap gap-1 mb-3">
+          ${repo.topics.map(t => `<span class="px-1.5 py-0.5 rounded text-xs" style="border:1px solid ${repo.color}44; color:${repo.color}; background:${repo.color}11">${t}</span>`).join('')}
+        </div>
+        <div class="flex items-center gap-4 text-xs text-gray-500">
+          <span class="flex items-center gap-1">
+            <span style="width:8px;height:8px;border-radius:50%;background:${repo.langColor};display:inline-block"></span>
+            ${repo.lang}
+          </span>
+          <span>⭐ ${repo.stars.toLocaleString()}</span>
+          <span>🍴 ${repo.forks}</span>
+          <span>🐛 ${repo.issues}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+  buildRepos();
+
+  // ─── ACTIVITY FEED ───────────────────────────────────────────────────────────
+  function buildActivity() {
+    const feed = document.getElementById('activity-feed');
+    ACTIVITY_EVENTS.forEach((ev, i) => {
+      const item = document.createElement('div');
+      item.className = 'activity-item';
+      item.style.borderColor = ev.color;
+      item.style.animationDelay = `${i * 0.08}s`;
+      item.style.opacity = '0';
+      item.innerHTML = `
+        <div class="flex items-start gap-2">
+          <span class="text-sm flex-shrink-0">${ev.icon}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs text-gray-300 leading-relaxed">${ev.text}</p>
+            <p class="text-xs mt-0.5" style="color:${ev.color}88">${ev.time}</p>
+          </div>
+        </div>
+      `;
+      feed.appendChild(item);
+      // Staggered reveal
+      setTimeout(() => { item.style.opacity = '1'; }, i * 80);
+    });
+  }
+  buildActivity();
+
+  // Simulate new activity every 8s
+  const NEW_EVENTS = [
+    { icon: '⬆️', text: 'Pushed 2 commits to <b>luxe-ui-kit</b>',          color: '#00f5ff' },
+    { icon: '⭐', text: '<b>codebase-memory-mcp</b> received a new star',   color: '#ffe600' },
+    { icon: '🔀', text: 'Opened PR #53 in <b>ai-code-reviewer</b>',         color: '#bf00ff' },
+    { icon: '🐛', text: 'Closed issue #9 in <b>codebase-memory-mcp</b>',   color: '#39ff14' },
+  ];
+  let newEventIdx = 0;
+  setInterval(() => {
+    const feed = document.getElementById('activity-feed');
+    const ev   = NEW_EVENTS[newEventIdx % NEW_EVENTS.length];
+    newEventIdx++;
+    const item = document.createElement('div');
+    item.className = 'activity-item';
+    item.style.borderColor = ev.color;
+    item.style.opacity = '0';
+    item.innerHTML = `
+      <div class="flex items-start gap-2">
+        <span class="text-sm flex-shrink-0">${ev.icon}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-gray-300 leading-relaxed">${ev.text}</p>
+          <p class="text-xs mt-0.5" style="color:${ev.color}88">just now</p>
+        </div>
+      </div>
+    `;
+    feed.insertBefore(item, feed.firstChild);
+    setTimeout(() => { item.style.opacity = '1'; }, 50);
+    // Keep feed trimmed
+    while (feed.children.length > 12) feed.removeChild(feed.lastChild);
+  }, 8000);
+
+  // ─── SKILLS ──────────────────────────────────────────────────────────────────
+  function buildSkills() {
+    const list = document.getElementById('skills-list');
+    SKILLS.forEach((skill, i) => {
+      const row = document.createElement('div');
+      row.innerHTML = `
+        <div class="flex justify-between text-xs mb-1">
+          <span class="text-gray-300">${skill.name}</span>
+          <span style="color:${skill.color}">${skill.pct}%</span>
+        </div>
+        <div class="skill-bar-track">
+          <div class="skill-bar-fill" data-pct="${skill.pct}"
+               style="width:0%; background:linear-gradient(90deg,${skill.color}88,${skill.color}); box-shadow:0 0 6px ${skill.color}88"></div>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    // Animate bars on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('.skill-bar-fill').forEach((bar, i) => {
+            setTimeout(() => {
+              bar.style.width = bar.dataset.pct + '%';
+            }, i * 150);
+          });
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    observer.observe(list);
+  }
+  buildSkills();
+
+  function buildLangs() {
+    const chart = document.getElementById('lang-chart');
+    // Stacked bar
+    const stackBar = document.createElement('div');
+    stackBar.className = 'flex rounded-full overflow-hidden h-4 mb-4';
+    stackBar.style.boxShadow = '0 0 10px #00000088';
+    LANGS.forEach(l => {
+      const seg = document.createElement('div');
+      seg.style.width = l.pct + '%';
+      seg.style.background = l.color;
+      seg.style.transition = 'width 1.5s ease';
+      seg.title = `${l.name}: ${l.pct}%`;
+      stackBar.appendChild(seg);
+    });
+    chart.appendChild(stackBar);
+
+    // Legend
+    LANGS.forEach(l => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between text-xs';
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span style="width:10px;height:10px;border-radius:50%;background:${l.color};display:inline-block;box-shadow:0 0 4px ${l.color}"></span>
+          <span class="text-gray-300">${l.name}</span>
+        </div>
+        <span style="color:${l.color}">${l.pct}%</span>
+      `;
+      chart.appendChild(row);
+    });
+  }
+  buildLangs();
+
+  // ─── RANDOM CONTRIB CELL FLICKER ─────────────────────────────────────────────
+  setInterval(() => {
+    const cells = document.querySelectorAll('.contrib-cell');
+    const cell  = cells[Math.floor(Math.random() * cells.length)];
+    const prev  = cell.style.background;
+    cell.style.background = '#00f5ff';
+    cell.style.boxShadow  = '0 0 8px #00f5ff';
+    setTimeout(() => {
+      cell.style.background = prev;
+      cell.style.boxShadow  = 'none';
+    }, 400);
+  }, 600);
+  </script>
+</body>
+</html>

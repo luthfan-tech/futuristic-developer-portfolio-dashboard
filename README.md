@@ -68,7 +68,7 @@ GitHub username, theme colors, intervals
 
 
 
-Tech Stack:
+#Tech Stack:
 
 Framework — React / Vue / Svelte (confirm yours)
 Styling — CSS Modules / Tailwind with custom neon theme
